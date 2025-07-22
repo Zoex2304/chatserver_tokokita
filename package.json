@@ -1,0 +1,29 @@
+
+{
+  "name": "tokokita-unified-socket-server",
+  "version": "1.0.0",
+  "description": "Unified Socket.IO Server untuk Chat, Refund, dan Cancellation",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "dev": "nodemon main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "socketio",
+    "websocket",
+    "chat",
+    "refund",
+    "cancellation",
+    "nodejs"
+  ],
+  "author": "Your Name",
+  "license": "ISC"
+}
