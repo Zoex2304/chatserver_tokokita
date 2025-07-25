@@ -12,8 +12,8 @@ app.use(express.json()); // Middleware untuk parsing body JSON dari request
 const server = http.createServer(app);
 
 const io = new Server(server, {
-    cors: {
-        origin: "https://chatserver-tokokita.onrender.com",
+   cors: {
+        origin: "https://vishnu.my.id", // <-- ini domain frontend kamu!
         methods: ["GET", "POST"]
     }
 });
