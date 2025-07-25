@@ -1,5 +1,6 @@
 // main.js - Unified Socket.IO Server
 // Menggabungkan semua namespace dan menambahkan endpoint HTTP untuk trigger dari PHP
+// Disesuaikan untuk deployment di Render.com
 
 const express = require('express');
 const http = require('http');
@@ -17,7 +18,8 @@ const io = new Server(server, {
     }
 });
 
-const port = 3000;
+// Port dinamis untuk Render.com - wajib menggunakan process.env.PORT
+const port = process.env.PORT || 3000;
 
 // Import handlers
 const ChatHandler = require('./handlers/chat');
@@ -42,6 +44,25 @@ const chatHandler = new ChatHandler(chatNamespace, logActivity);
 const refundHandler = new RefundHandler(refundNamespace, logActivity);
 const cancellationHandler = new CancellationHandler(cancellationNamespace, logActivity);
 const orderHandler = new OrderHandler(orderNamespace, logActivity);
+
+// Health check endpoint untuk Render.com
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        port: port
+    });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+    res.status(200).json({
+        message: 'Socket.IO Server Running',
+        namespaces: ['/chat', '/refund', '/cancellation', '/order'],
+        endpoints: ['/health', '/trigger-order-update'],
+        timestamp: new Date().toISOString()
+    });
+});
 
 // [BARU] Endpoint HTTP untuk trigger dari PHP (Midtrans Webhook)
 app.post('/trigger-order-update', (req, res) => {
@@ -108,14 +129,34 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(port, () => {
-    console.log(`🚀 Server Socket.IO Terpusat berjalan di https://chatserver-tokokita.onrender.com:${port}`);
+// Bind ke host 0.0.0.0 untuk Render.com
+server.listen(port, '0.0.0.0', () => {
+    console.log(`🚀 Server Socket.IO Terpusat berjalan di port ${port}`);
+    console.log(`🌐 URL: https://chatserver-tokokita.onrender.com`);
     console.log(`📂 Namespace tersedia:`);
     console.log(`   - /chat (untuk fitur chat)`);
     console.log(`   - /refund (untuk notifikasi refund)`);
     console.log(`   - /cancellation (untuk notifikasi pembatalan)`);
     console.log(`   - /order (untuk notifikasi pesanan baru)`);
-    console.log(`⚡️ Endpoint HTTP trigger tersedia di POST https://chatserver-tokokita.onrender.com:${port}/trigger-order-update`);
+    console.log(`📡 Endpoint HTTP tersedia:`);
+    console.log(`   - GET /health (health check)`);
+    console.log(`   - GET / (server info)`);
+    console.log(`   - POST /trigger-order-update (webhook trigger)`);
+});
+
+// Graceful shutdown untuk Render.com
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    server.close(() => {
+        console.log('Process terminated');
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    server.close(() => {
+        console.log('Process terminated');
+    });
 });
 
 module.exports = { io, server };
